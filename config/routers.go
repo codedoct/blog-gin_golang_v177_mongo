@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"blog-gin_golang_v177_mongo/app/controllers/root"
+	"blog-gin_golang_v177_mongo/config/collection"
 )
 
 func Route(db *mongo.Client) {
@@ -13,6 +14,8 @@ func Route(db *mongo.Client) {
 	corsConfig(router)
 
 	router.GET("/", root.Index)
+	main := router.Group("v1")
+	collection.MainRouter(db, main)
 
 	if err := router.Run(); err != nil {
 		log.Fatal(err)
