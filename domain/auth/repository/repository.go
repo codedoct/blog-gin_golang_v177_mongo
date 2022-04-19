@@ -14,6 +14,7 @@ import (
 type AuthRepositoryInterface interface {
 	FindOneByEmail(email string) (bson.M, int, error)
 	UpdateToken(email, ss string) error
+	DeleteToken(email string) error
 }
 
 type authRepository struct {
@@ -45,6 +46,20 @@ func (r *authRepository) UpdateToken(email, ss string) error {
 	_, err := r.db.UpdateOne(ctx, bson.M{"email": email},
 		bson.D{
 			{"$set", bson.D{{"token", ss}}},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *authRepository) DeleteToken(email string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := r.db.UpdateOne(ctx, bson.M{"email": email},
+		bson.D{
+			{"$set", bson.D{{"token", ""}}},
 		},
 	)
 	if err != nil {

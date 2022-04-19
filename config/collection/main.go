@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"blog-gin_golang_v177_mongo/app/controllers/auth"
+	"blog-gin_golang_v177_mongo/config/middleware"
 )
 
 func MainRouter(db *mongo.Client, main *gin.RouterGroup) {
@@ -12,5 +13,6 @@ func MainRouter(db *mongo.Client, main *gin.RouterGroup) {
 	auth := main.Group("auth")
 	{
 		auth.POST("/login", authCtrl.Login)
+		auth.POST("/logout", middleware.Auth(db), authCtrl.Logout)
 	}
 }

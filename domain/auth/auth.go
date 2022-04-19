@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 
 type AuthServiceInterface interface {
 	SignIn(reqBody model.ReqBody) (*model.ResBody, int, error)
+	CheckAuth(bearerToken string) (bson.M, error)
+	Logout(email string) (int, error)
 }
 
 type authService struct {
@@ -53,4 +56,30 @@ func (s *authService) SignIn(reqBody model.ReqBody) (*model.ResBody, int, error)
 	var resBody model.ResBody
 	resBody.Token = ss
 	return &resBody, http.StatusOK, nil
+}
+
+func (s *authService) CheckAuth(bearerToken string) (bson.M, error) {
+	tokenRaw, claims, err := encrypt.Parse(bearerToken)
+	if err != nil {
+
+		return nil, err
+	}
+
+	email := claims["email"].(string)
+	user, _, err := s.Repository.FindOneByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if user["token"] != tokenRaw {
+		return nil, errors.New(constant.UserHasSignedOut)
+	}
+	return user, nil
+}
+
+func (s *authService) Logout(email string) (int, error) {
+	if err := s.Repository.DeleteToken(email); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
 }

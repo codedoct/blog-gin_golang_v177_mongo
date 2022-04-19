@@ -8,6 +8,7 @@ import (
 	"blog-gin_golang_v177_mongo/domain/auth"
 	"blog-gin_golang_v177_mongo/domain/auth/model"
 	"blog-gin_golang_v177_mongo/domain/auth/repository"
+	authLib "blog-gin_golang_v177_mongo/lib/auth"
 	"blog-gin_golang_v177_mongo/lib/env"
 	"blog-gin_golang_v177_mongo/lib/response"
 )
@@ -32,4 +33,19 @@ func (c *authController) Login(ctx *gin.Context) {
 		return
 	}
 	response.Json(ctx, statusCode, res)
+}
+
+func (c *authController) Logout(ctx *gin.Context) {
+	authUser, err := authLib.GetAuthUserCtx(ctx)
+	if err != nil {
+		response.Error(ctx, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	status, err := c.service.Logout(authUser.Email)
+	if err != nil {
+		response.Error(ctx, status, err.Error())
+		return
+	}
+	response.Json(ctx, status, nil)
 }
