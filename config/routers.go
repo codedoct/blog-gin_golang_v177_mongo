@@ -12,6 +12,7 @@ import (
 func Route(db *mongo.Client) {
 	router := gin.Default()
 	corsConfig(router)
+	router.Static("/static", "./static")
 
 	router.GET("/", root.Index)
 	main := router.Group("v1")
